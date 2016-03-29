@@ -7,7 +7,7 @@ function cp_plot
 
 %% init
 %add lib paths
-addpath('shared_lib')
+addpath('../../shared_lib')
 addpath('lib')
 
 %read in config

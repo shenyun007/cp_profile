@@ -77,8 +77,6 @@ for j=1:length(data_dt_uniq)
     data.pg        = C{24}(data_mask);
     data.tke       = C{25}(data_mask);
     data.edr       = C{26}(data_mask);
-    %dervice relh and dwpt
-    [data.relh,data.dwpt] = calc_sr_humidity(data.temp,data.tempv,data.h,site_h);
     %add profile to sr_data
     sr_dataset = adddataset(data,sr_dataset);
 end

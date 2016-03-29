@@ -94,6 +94,7 @@ data.temp  = temp;
 data.dwpt  = dwpt;
 data.wdir  = wdir;
 data.wspd  = wspd;
+data.tempv = calc_tempv(pres, temp, dwpt);
 
 %decide if it's a wind only raob
 if all(isnan(temp(2:end)))
@@ -101,3 +102,64 @@ if all(isnan(temp(2:end)))
 else
     data.wraob = false;
 end
+
+%SHARPPY/shappy/sharptab/thermo.py
+function vt=calc_tempv(p, t, td)
+%     '''
+%     Returns the virtual temperature (C) of a parcel.  If 
+%     td is masked, then it returns the temperature passed to the 
+%     function.
+%     Parameters
+%     ----------
+%     p : number
+%         The pressure of the parcel (hPa)
+%     t : number
+%         Temperature of the parcel (C)
+%     td : number
+%         Dew point of parcel (C)
+%     Returns
+%     -------
+%     Virtual temperature (C)
+%     '''
+eps = 0.62197;
+tk  = t + 273.15;
+w   = 0.001 .* calc_mixratio(p, td);
+vt  = (tk .* (1. + w ./ eps) ./ (1. + w)) - 273.15;
+
+%SHARPPY/shappy/sharptab/params.py
+function mixratio=calc_mixratio(p, t)
+%     '''
+%     Returns the mixing ratio (g/kg) of a parcel
+%     Parameters
+%     ----------
+%     p : number, numpy array
+%         Pressure of the parcel (hPa)
+%     t : number, numpy array
+%         Temperature of the parcel (hPa)
+%     Returns
+%     -------
+%     Mixing Ratio (g/kg) of the given parcel
+%     '''
+x        = 0.02 .* (t - 12.5 + (7500 ./ p));
+wfw      = 1. + (0.0000045 .* p) + (0.0014 .* x .* x);
+fwesw    = wfw .* vappres(t);
+mixratio = 621.97 .* (fwesw ./ (p - fwesw));
+
+%SHARPPY/shappy/sharptab/params.py
+function vp = vappres(t)
+%     '''
+%     Returns the vapor pressure of dry air at given temperature
+%     Parameters
+%     ------
+%     t : number, numpy array
+%         Temperature of the parcel (C)
+%     Returns
+%     -------
+%     Vapor Pressure of dry air
+%     '''
+pol = t .* (1.1112018e-17 + (t .* -3.0994571e-20));
+pol = t .* (2.1874425e-13 + (t .* (-1.789232e-15 + pol)));
+pol = t .* (4.3884180e-09 + (t .* (-2.988388e-11 + pol)));
+pol = t .* (7.8736169e-05 + (t .* (-6.111796e-07 + pol)));
+pol = 0.99999683 + (t .* (-9.082695e-03 + pol));
+vp  =  6.1078 ./ pol.^8;

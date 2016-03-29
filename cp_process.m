@@ -7,7 +7,7 @@ function cp_process
 
 %% init
 %add lib paths
-addpath('shared_lib')
+addpath('../../shared_lib')
 addpath('lib')
 
 %read in config
@@ -27,8 +27,11 @@ sr_dataset  = struct;
 %generate filelisting of sodarrass_path
 filelist = dir(sodarrass_path); filelist(1:2) = [];
 
+%load 30min mslp dataset (Archerfield)
+%mslp_dataset = read_bom_mslp(mslp_aws_path);
+
 %loop through fielist
-for i=1:length(filelist)
+for i=50:length(filelist)
     %load data
     tmp_ffn = [sodarrass_path,filelist(i).name];
     %update user

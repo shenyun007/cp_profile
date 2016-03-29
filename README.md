@@ -7,4 +7,5 @@ Note: Requires shared_lib git cloned and a symbolic link to it created in the re
 
 ###Change notes
 
+20160329 - Inital release of working sounding - sodar rass comparision code
 

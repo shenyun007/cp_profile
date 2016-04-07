@@ -9,7 +9,7 @@ function data = read_UA02D(data_ffn,skip_wraob,utc_offset)
 %
 %FORMAT:
 % snd_data.data#.flight      (1x1 uniq flight number)
-%                  .dt          (1x1 datetime number local time (uses utc_offset))
+%                  .dt_utc      (1x1 datetime in UTC)
 %                  .id          (1x1 bom site id)
 %                  .wmo_id      (1x1 wmo site id)
 %                  .lat         (1x1 site lat dec degs)
@@ -32,7 +32,7 @@ fclose(fid);
 %read id and flight time
 tmp            = textscan(rawtext{2},'%s','delimiter',' ','MultipleDelimsAsOne',1); tmp=tmp{1};
 data.flight    = tmp{3};
-data.dt        = addtodate(datenum([tmp{4},'_',tmp{5}],'dd/mm/yyyy_HH:MM'),utc_offset,'hour'); %apply utc offset for local time
+data.dt_utc        = datenum([tmp{4},'_',tmp{5}],'dd/mm/yyyy_HH:MM'); %apply utc offset for local time
 
 %read station number and wmo code
 tmp            =  textscan(rawtext{3},'%s','delimiter',' ','MultipleDelimsAsOne',1); tmp=tmp{1};

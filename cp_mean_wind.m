@@ -26,85 +26,76 @@ load(cp_data_ffn)
 %build sr dt list
 sr_dt_list = nan(length(fieldnames(sr_dataset)),1);
 for i=1:length(sr_dt_list)
-    sr_dt_list(i) = sr_dataset.(['data',num2str(i)]).dt;
+    sr_dt_list(i) = sr_dataset.(['data',num2str(i)]).dt_local;
 end
 
-%build snd dt list
-snd_dt_list = nan(length(fieldnames(snd_dataset)),1);
-for i=1:length(snd_dt_list)
-    snd_dt_list(i) = snd_dataset.(['data',num2str(i)]).dt;
+%build sd dt list
+sd_dt_list = nan(length(fieldnames(snd_dataset)),1);
+for i=1:length(sd_dt_list)
+    sd_dt_list(i) = snd_dataset.(['data',num2str(i)]).dt_utc;
+end
+%convert to local time
+for i=1:length(sd_dt_list)
+    sd_dt_list(i) = addtodate(sd_dt_list(i),utc_offset,'hour');
 end
 
-%build common snd sr date list
-snd_sr_datelist = intersect(unique(floor(sr_dt_list)),unique(floor(snd_dt_list)));
+%build common sd sr date list
+sd_sr_datelist = intersect(unique(floor(sr_dt_list)),unique(floor(sd_dt_list)));
 
-%generate a mask for sector datelists
-%read 30min wind data (ybbn)
-wind_database = read_bom_wind(wind_aws_path);
-%init blank masks
-sector1_mask = false(length(snd_sr_datelist),1);
-sector2_mask = false(length(snd_sr_datelist),1);
-%loop through each date
-for i=1:length(snd_sr_datelist)
-    %load current date
-    target_dt = addtodate(snd_sr_datelist(i),mean_time,'hour');
-    %exact required wind time
-    [~,aws_ind] = min(abs(wind_database.dt-target_dt));
-    aws_wdir    = wind_database.wdir(aws_ind);
-    %apply filters
-    if aws_wdir>=s1_min && aws_wdir<=s1_max
-        sector1_mask(i) = true;
-    end
-    if aws_wdir>=s2_min && aws_wdir<=s2_max
-        sector2_mask(i) = true;
-    end
-end
+%extract morning time data
+[m_vtemp,m_wnd_cmp] = process_profile(sd_sr_datelist,sr_dt_list,sd_dt_list,9);
+[m_sr_mean_wdir,~]  = cart2compass(nanmean(m_wnd_cmp.sr_uwnd,1),nanmean(m_wnd_cmp.sr_vwnd,1));
+[m_sd_mean_wdir,~]  = cart2compass(nanmean(m_wnd_cmp.sd_uwnd,1),nanmean(m_wnd_cmp.sd_vwnd,1));
 
+%apply sector filters
+m_sector1_mask = m_sr_mean_wdir>=s1_min & m_sr_mean_wdir<=s1_max & m_sd_mean_wdir>=s1_min & m_sd_mean_wdir<=s1_max;
+m_sector2_mask = m_sr_mean_wdir>=s2_min & m_sr_mean_wdir<=s2_max & m_sd_mean_wdir>=s2_min & m_sd_mean_wdir<=s2_max;
 
-%calc mean tempv diff for sb and nonsb days
-[s1_mean_diff_tempv,s1_wnd_cmp,s1_sum_diff_obs] = calc_profile_diff(snd_sr_datelist(sector1_mask),sr_dt_list,snd_dt_list);
-[s2_mean_diff_tempv,s2_wnd_cmp,s2_sum_diff_obs] = calc_profile_diff(snd_sr_datelist(sector2_mask),sr_dt_list,snd_dt_list);
+%calc mean vtemp for sb and nonsb days
+s1_sr_vtemp  = nanmean(m_vtemp.sr_vtemp(:,m_sector1_mask),2);
+s1_sd_vtemp  = nanmean(m_vtemp.sd_vtemp(:,m_sector1_mask),2);
+s2_sr_vtemp  = nanmean(m_vtemp.sr_vtemp(:,m_sector2_mask),2);
+s2_sd_vtemp  = nanmean(m_vtemp.sd_vtemp(:,m_sector2_mask),2);
+
+s1_sr_wspd  = nanmean(m_wnd_cmp.sr_uwnd(:,m_sector1_mask),2);
+s1_sd_wspd  = nanmean(m_wnd_cmp.sd_uwnd(:,m_sector1_mask),2);
+s2_sr_wspd  = nanmean(m_wnd_cmp.sr_uwnd(:,m_sector2_mask),2);
+s2_sd_wspd  = nanmean(m_wnd_cmp.sd_uwnd(:,m_sector2_mask),2);
 
 %% Plotting
 %create h vec
 intp_h_vec = [min_h:bin_h:max_h]';
 
 %vtemp
-hfig = figure('color','w','position',[1 1 400 500]); hold on; grid on
-plot(s1_mean_diff_tempv,intp_h_vec,'k-','LineWidth',2)
-plot(s2_mean_diff_tempv,intp_h_vec,'k--','LineWidth',2)
+hfig = figure('color','w','position',[1 1 500 500]); hold on; grid on
+plot(s1_sr_vtemp,intp_h_vec, 'k-','LineWidth',1)
+plot(s1_sd_vtemp,intp_h_vec,'k--','LineWidth',1)
+plot(s2_sr_vtemp,intp_h_vec,'k-','LineWidth',2)
+plot(s2_sd_vtemp,intp_h_vec,'k--','LineWidth',2)
 plot(zeros(length(intp_h_vec)+1,1),[50;intp_h_vec],'k')
 xlabel(['\Delta Virtual Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
 ylabel('Height AMSL (m)','FontSize',14,'FontWeight','demi')
-legend({'NE Sector','SE Sector'},'FontSize',12,'Location','SouthEast')
-set(gca,'FontSize',14,'Xlim',[-2,2])
-export_fig(hfig,'-dpng','-painters','-r300','-nocrop',[cp_image_path,num2str(sr_snd_hour_diff),'hr_vtemp_diff_sector.png']);
+legend({'NE SR','NE SD','SE SR','SE SD'},'FontSize',12,'Location','EastOutside')
+set(gca,'FontSize',14,'Xlim',[22,28])
+export_fig(hfig,'-dpng','-painters','-r300','-nocrop',[cp_image_path,'hr_vtemp_diff_sector.png']);
 
 %plot wspd
-s1_sr_wspd  = sqrt(s1_wnd_cmp.sr_uwnd.^2+s1_wnd_cmp.sr_vwnd.^2);
-s1_snd_wspd = sqrt(s1_wnd_cmp.snd_uwnd.^2+s1_wnd_cmp.snd_vwnd.^2);
-s2_sr_wspd  = sqrt(s2_wnd_cmp.sr_uwnd.^2+s2_wnd_cmp.sr_vwnd.^2);
-s2_snd_wspd = sqrt(s2_wnd_cmp.snd_uwnd.^2+s2_wnd_cmp.snd_vwnd.^2);
 
-s1_wspd_diff = s1_sr_wspd-s1_snd_wspd;
-s2_wspd_diff = s2_sr_wspd-s2_snd_wspd;
 
 %setup figure
-hfig = figure('color','w','position',[1 1 400 500]); hold on; grid on
+hfig = figure('color','w','position',[1 1 500 500]); hold on; grid on
 %
-display('tweak s1 wspd')
-s1_wspd_diff(end-1) = 0;
-s1_wspd_diff(end-2) = -0.2;
-s1_wspd_diff(end-3) = -0.4;
 %plot data
-plot(s1_wspd_diff,intp_h_vec,'k-','LineWidth',2)
-plot(s2_wspd_diff,intp_h_vec,'k--','LineWidth',2)
+plot(s1_sr_wspd,intp_h_vec,'k-','LineWidth',1)
+plot(s1_sd_wspd,intp_h_vec,'k--','LineWidth',1)
+plot(s2_sr_wspd,intp_h_vec,'k-','LineWidth',2)
+plot(s2_sd_wspd,intp_h_vec,'k--','LineWidth',2)
 %plot 0 line
 plot(zeros(length(intp_h_vec)+1,1),[50;intp_h_vec],'k')
 %add annotations and sizing
 xlabel('\Delta Wind Speed (m/s)','FontSize',14,'FontWeight','demi')
 ylabel('Height AMSL (m)','FontSize',14,'FontWeight','demi')
-legend({'NE Sector','SE Sector'},'FontSize',12,'Location','SouthEast')
-set(gca,'FontSize',14,'Xlim',[-4,4])
+legend({'NE SR','NE SD','SE SR','SE SD'},'FontSize',12,'Location','EastOutside')
+set(gca,'FontSize',14,'Xlim',[0,8])
 %export
-export_fig(hfig,'-dpng','-painters','-r300','-nocrop',[cp_image_path,num2str(sr_snd_hour_diff),'hr_wspd_diff_sector.png']);
+export_fig(hfig,'-dpng','-painters','-r300','-nocrop',[cp_image_path,'hr_wspd_diff_sector.png']);

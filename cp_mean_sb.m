@@ -14,6 +14,7 @@ addpath('lib')
 %read in config
 read_config('etc/cp_profile.config','etc/config.mat');
 load('etc/config.mat');
+close all
 
 %% load/subset data
 
@@ -23,72 +24,79 @@ load(cp_data_ffn)
 %build sr dt list
 sr_dt_list = nan(length(fieldnames(sr_dataset)),1);
 for i=1:length(sr_dt_list)
-    sr_dt_list(i) = sr_dataset.(['data',num2str(i)]).dt;
+    sr_dt_list(i) = sr_dataset.(['data',num2str(i)]).dt_local;
 end
 
-%build snd dt list
-snd_dt_list = nan(length(fieldnames(snd_dataset)),1);
-for i=1:length(snd_dt_list)
-    snd_dt_list(i) = snd_dataset.(['data',num2str(i)]).dt;
+%build sd dt list
+sd_dt_list = nan(length(fieldnames(snd_dataset)),1);
+for i=1:length(sd_dt_list)
+    sd_dt_list(i) = snd_dataset.(['data',num2str(i)]).dt_utc;
+end
+%convert to local time
+for i=1:length(sd_dt_list)
+    sd_dt_list(i) = addtodate(sd_dt_list(i),utc_offset,'hour');
 end
 
-%build common snd sr date list
-snd_sr_datelist = intersect(unique(floor(sr_dt_list)),unique(floor(snd_dt_list)));
+
+%build common sd sr date list
+sd_sr_datelist = intersect(unique(floor(sr_dt_list)),unique(floor(sd_dt_list)));
 
 %load sb date list
 load('../../shared_datasets/arch_sb_days.mat');
 sb_datelist = target_days;
 load('../../shared_datasets/arch_nonsb_days.mat');
-nonsb_datelist = target_days;
+nsb_datelist = target_days;
 
-%build common snd sr sb date list
-sb_sr_snd_datelist    = intersect(snd_sr_datelist,sb_datelist);
-nonsb_sr_snd_datelist = intersect(snd_sr_datelist,nonsb_datelist);
+%build common sd sr sb date list
+sb_sr_datelist  = intersect(sr_dt_list,sb_datelist);
+nsb_sr_datelist = intersect(sr_dt_list,nsb_datelist);
 
-%calc mean tempv diff for sb and nonsb days
-[sb_mean_diff_tempv,sb_wnd_cmp,sb_sum_diff_obs]          = calc_profile_diff(sb_sr_snd_datelist,sr_dt_list,snd_dt_list);
-[nonsb_mean_diff_tempv,nonsb_wnd_cmp,nonsb_sum_diff_obs] = calc_profile_diff(nonsb_sr_snd_datelist,sr_dt_list,snd_dt_list);
+
+%extract morning time data
+target_time     = 9;
+[mn_sb_data,~]  = process_sr_profile(sb_sr_datelist,sr_dt_list,target_time);
+[mn_nsb_data,~] = process_sr_profile(nsb_sr_datelist,sr_dt_list,target_time);
+target_time     = 15;
+[an_sb_data,~]  = process_sr_profile(sb_sr_datelist,sr_dt_list,target_time);
+[an_nsb_data,~] = process_sr_profile(nsb_sr_datelist,sr_dt_list,target_time);
+
+
+sb_sr_vtemp_diff  = an_sb_data.sr_vtemp  - mn_sb_data.sr_vtemp;
+nsb_sr_vtemp_diff = an_nsb_data.sr_vtemp - mn_nsb_data.sr_vtemp;
+sb_sr_wspd_diff   = an_sb_data.sr_wspd  - mn_sb_data.sr_wspd;
+nsb_sr_wspd_diff  = an_nsb_data.sr_wspd - mn_nsb_data.sr_wspd;
+
+%calc vtemp diffs
+sb_sr_vtemp_diff_mean  = nanmean(sb_sr_vtemp_diff,2);
+nsb_sr_vtemp_diff_mean = nanmean(nsb_sr_vtemp_diff,2);
+sb_sr_wspd_diff_mean   = nanmean(sb_sr_wspd_diff,2);
+nsb_sr_wspd_diff_mean  = nanmean(nsb_sr_wspd_diff,2);
 
 %% Plotting
 %create h vec
 intp_h_vec = [min_h:bin_h:max_h]';
-
+hfig = figure('color','w','position',[1 1 600 300]); hold on; grid on
 %plot vtemp
 %setup figure
-hfig = figure('color','w','position',[1 1 500 600]); hold on; grid on
 %plot data
-plot(sb_mean_diff_tempv,intp_h_vec,'k-','LineWidth',2)
-plot(nonsb_mean_diff_tempv,intp_h_vec,'k--','LineWidth',2)
-%plot 0 line
-plot(zeros(length(intp_h_vec),1),intp_h_vec,'k')
+subplot(1,2,1); axis tight; hold on; grid on
+plot(sb_sr_vtemp_diff_mean,intp_h_vec,'k-','LineWidth',2)
+plot(nsb_sr_vtemp_diff_mean,intp_h_vec,'k--','LineWidth',2)
 %add annotations and sizing
-xlabel('vtemp diff of SODAR-YBBN (C)','FontSize',14,'FontWeight','demi')
+xlabel(['\Delta Virtual Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
 ylabel('Height AMSL (m)','FontSize',14,'FontWeight','demi')
-legend({'SB Days','nonSB Days'},'FontSize',12)
-set(gca,'FontSize',12,'Xlim',[-1,6])
-%export
-export_fig(hfig,'-dpng','-painters','-r300','-nocrop',[cp_image_path,num2str(sr_snd_hour_diff),'hr_vtemp_diff_sb.png']);
-
+%legend({'SB diff','nSB diff'},'FontSize',12)
+set(gca,'FontSize',12,'Xlim',[0,5],'Ylim',[min_h,400])
 %plot wspd
-sb_sr_wspd     = sqrt(sb_wnd_cmp.sr_uwnd.^2+sb_wnd_cmp.sr_vwnd.^2);
-sb_snd_wspd    = sqrt(sb_wnd_cmp.snd_uwnd.^2+sb_wnd_cmp.snd_vwnd.^2);
-nonsb_sr_wspd  = sqrt(nonsb_wnd_cmp.sr_uwnd.^2+nonsb_wnd_cmp.sr_vwnd.^2);
-nonsb_snd_wspd = sqrt(nonsb_wnd_cmp.snd_uwnd.^2+nonsb_wnd_cmp.snd_vwnd.^2);
-
-sb_wspd_diff    = sb_sr_wspd-sb_snd_wspd;
-nonsb_wspd_diff = nonsb_sr_wspd-nonsb_snd_wspd;
 
 %setup figure
-hfig = figure('color','w','position',[1 1 500 600]); hold on; grid on
+subplot(1,2,2); axis tight; hold on; grid on
 %plot data
-plot(sb_wspd_diff,intp_h_vec,'k-','LineWidth',2)
-plot(nonsb_wspd_diff,intp_h_vec,'k--','LineWidth',2)
-%plot 0 line
-plot(zeros(length(intp_h_vec),1),intp_h_vec,'k')
+plot(sb_sr_wspd_diff_mean,intp_h_vec,'k-','LineWidth',2)
+plot(nsb_sr_wspd_diff_mean,intp_h_vec,'k--','LineWidth',2)
 %add annotations and sizing
-xlabel('wspd diff of SODAR-YBBN (m/s)','FontSize',14,'FontWeight','demi')
-ylabel('Height AMSL (m)','FontSize',14,'FontWeight','demi')
-legend({'SB Days','nonSB Days'},'FontSize',12)
-set(gca,'FontSize',12,'Xlim',[-5,6])
+xlabel('\Delta Wind Speed (m/s)','FontSize',14,'FontWeight','demi')
+%legend({'SB SR','nSB SR'},'FontSize',12)
+set(gca,'FontSize',12,'Xlim',[0,5],'Ylim',[min_h,400])
 %export
-export_fig(hfig,'-dpng','-painters','-r300','-nocrop',[cp_image_path,num2str(sr_snd_hour_diff),'hr_wspd_diff_sb.png']);
+export_fig(hfig,'-dpng','-painters','-r300','-nocrop','sr_vtemp_wspd_diff_sb_nsb.png');

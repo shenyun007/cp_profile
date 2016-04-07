@@ -7,7 +7,7 @@ function sr_dataset = read_sodarrass(data_ffn,sr_dataset,site_h)
 %creating images of temporal profiles.
 
 %FORMAT:
-% sr_dataset.data#.dt        (1x1 datetime number local time)
+% sr_dataset.data#.dt_local  (1x1 datetime number local time)
 %                 .h         (nx1 height - m)
 %                 .site_h    (1x1 site height - m)
 %                 .u         (nx1 uwind - m/s)
@@ -50,7 +50,7 @@ for j=1:length(data_dt_uniq)
     data      = struct;
     data_mask = data_dt==data_dt_uniq(j);
     %extract data for profile
-    data.dt        = data_dt_uniq(j);
+    data.dt_local  = data_dt_uniq(j);
     data.h         = C{2}(data_mask);
     data.site_h    = site_h;
     data.u         = C{3}(data_mask);

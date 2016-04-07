@@ -22,14 +22,16 @@ load(cp_data_ffn)
 %build sr dt list
 sr_dt = nan(length(fieldnames(sr_dataset)),1);
 for i=1:length(sr_dt)
-    sr_dt(i) = sr_dataset.(['data',num2str(i)]).dt;
+    sr_dt(i) = sr_dataset.(['data',num2str(i)]).dt_local;
 end
 
 %build snd dt list
 snd_dt = nan(length(fieldnames(snd_dataset)),1);
 for i=1:length(snd_dt)
-    snd_dt(i) = snd_dataset.(['data',num2str(i)]).dt;
+    snd_dt(i) = snd_dataset.(['data',num2str(i)]).dt_utc;
 end
+%convet to local time
+snd_dt = addtodate(snd_dt,utc_offset,'hour');
 
 %find nearest index for snd data
 target_dt       = datenum(target_dt_str,'yyyy_mm_dd_HH:MM');

@@ -16,6 +16,7 @@ load('etc/config.mat');
 snd_h    = snd_dataset.(['data',num2str(snd_idx)]).h;
 snd_temp = snd_dataset.(['data',num2str(snd_idx)]).temp;
 snd_dwpt = snd_dataset.(['data',num2str(snd_idx)]).dwpt;
+snd_pres = snd_dataset.(['data',num2str(snd_idx)]).pres;
 snd_wspd = snd_dataset.(['data',num2str(snd_idx)]).wspd;
 snd_wdir = snd_dataset.(['data',num2str(snd_idx)]).wdir;
 
@@ -39,4 +40,5 @@ intp_data.temp  = interp1(snd_h(~snd_thermo_mask),snd_temp(~snd_thermo_mask),int
 intp_data.dwpt  = interp1(snd_h(~snd_thermo_mask),snd_dwpt(~snd_thermo_mask),intp_h_vec,'linear',nan);
 intp_data.uwnd  = interp1(snd_h(~snd_wnd_mask),snd_uwnd(~snd_wnd_mask),intp_h_vec,'linear',nan);
 intp_data.vwnd  = interp1(snd_h(~snd_wnd_mask),snd_vwnd(~snd_wnd_mask),intp_h_vec,'linear',nan);
+intp_data.pres  = interp1(snd_h(~snd_wnd_mask),snd_pres(~snd_wnd_mask),intp_h_vec,'linear',nan);
 

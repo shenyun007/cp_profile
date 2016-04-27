@@ -45,12 +45,17 @@ nonsb_count = 0;
 
 sb_temp_diff = [];
 sb_dwpt_diff = [];
-sb_uwnd_diff = [];
-sb_vwnd_diff = []; 
+sb_uwnd_m    = [];
+sb_vwnd_m    = [];
+sb_uwnd_a    = [];
+sb_vwnd_a    = []; 
 sb_dt        = [];
+sb_morning_theta_e = [];
+sb_afternn_theta_e = [];
+
 for i=1:length(sb_datelist)
     
-    morning_early = addtodate(sb_datelist(i)-1,2,'hour'); %22Z
+    morning_early = addtodate(sb_datelist(i),-2,'hour'); %22Z
     morning_late  = sb_datelist(i); %00Z
     afternn_early = addtodate(sb_datelist(i),2,'hour'); %02Z
     afternn_late  = addtodate(sb_datelist(i),5,'hour'); %02Z 
@@ -67,8 +72,16 @@ for i=1:length(sb_datelist)
         
         sb_temp_diff = [sb_temp_diff,afternn_intp_data.temp-morning_intp_data.temp];
         sb_dwpt_diff = [sb_dwpt_diff,afternn_intp_data.dwpt-morning_intp_data.dwpt];
-        sb_uwnd_diff = [sb_uwnd_diff,afternn_intp_data.uwnd-morning_intp_data.uwnd];
-        sb_vwnd_diff = [sb_vwnd_diff,afternn_intp_data.vwnd-morning_intp_data.vwnd];
+        sb_uwnd_m    = [sb_uwnd_m,morning_intp_data.uwnd];
+        sb_vwnd_m    = [sb_vwnd_m,morning_intp_data.vwnd];
+        sb_uwnd_a    = [sb_uwnd_a,afternn_intp_data.uwnd];
+        sb_vwnd_a    = [sb_vwnd_a,afternn_intp_data.vwnd];
+        
+        
+        morning_theta_e = calc_theta_e(morning_intp_data.temp,morning_intp_data.dwpt,morning_intp_data.pres);
+        afternn_theta_e = calc_theta_e(afternn_intp_data.temp,afternn_intp_data.dwpt,afternn_intp_data.pres);
+        sb_morning_theta_e = [sb_morning_theta_e,morning_theta_e];
+        sb_afternn_theta_e = [sb_afternn_theta_e,afternn_theta_e];
         
         sb_count = sb_count+1;
         sb_dt    = [sb_dt;sb_datelist(i)];
@@ -78,8 +91,10 @@ end
 
 nonsb_temp_diff = [];
 nonsb_dwpt_diff = [];
-nonsb_uwnd_diff = [];
-nonsb_vwnd_diff = []; 
+nonsb_uwnd_m    = [];
+nonsb_vwnd_m    = [];
+nonsb_uwnd_a    = [];
+nonsb_vwnd_a    = []; 
 nonsb_dt        = [];
 
 
@@ -105,8 +120,10 @@ for i=1:length(nonsb_datelist)
         
         nonsb_temp_diff = [nonsb_temp_diff,afternn_intp_data.temp-morning_intp_data.temp];
         nonsb_dwpt_diff = [nonsb_dwpt_diff,afternn_intp_data.dwpt-morning_intp_data.dwpt];
-        nonsb_uwnd_diff = [nonsb_uwnd_diff,afternn_intp_data.uwnd-morning_intp_data.uwnd];
-        nonsb_vwnd_diff = [nonsb_vwnd_diff,afternn_intp_data.vwnd-morning_intp_data.vwnd];
+        nonsb_uwnd_m    = [nonsb_uwnd_m,morning_intp_data.uwnd];
+        nonsb_vwnd_m    = [nonsb_vwnd_m,morning_intp_data.vwnd];
+        nonsb_uwnd_a    = [nonsb_uwnd_a,afternn_intp_data.uwnd];
+        nonsb_vwnd_a    = [nonsb_vwnd_a,afternn_intp_data.vwnd];
         
         nonsb_count = nonsb_count+1;
         nonsb_dt    = [nonsb_dt;nonsb_datelist(i)];
@@ -115,35 +132,120 @@ for i=1:length(nonsb_datelist)
 
 end
 
-sb_temp_diff_std    = nanstd(sb_temp_diff,0,2);
-sb_dwpt_diff_std    = nanstd(sb_dwpt_diff,0,2);
-nonsb_temp_diff_std = nanstd(nonsb_temp_diff,0,2);
-nonsb_dwpt_diff_std = nanstd(nonsb_dwpt_diff,0,2);
-
 sb_temp_diff_mean    = nanmean(sb_temp_diff,2);
 sb_dwpt_diff_mean    = nanmean(sb_dwpt_diff,2);
 nonsb_temp_diff_mean = nanmean(nonsb_temp_diff,2);
 nonsb_dwpt_diff_mean = nanmean(nonsb_dwpt_diff,2);
 
+sb_uwnd_m_mean    = nanmean(sb_uwnd_m,2);
+sb_vwnd_m_mean    = nanmean(sb_vwnd_m,2);
+sb_uwnd_a_mean    = nanmean(sb_uwnd_a,2);
+sb_vwnd_a_mean    = nanmean(sb_vwnd_a,2);
+nonsb_uwnd_m_mean = nanmean(nonsb_uwnd_m,2);
+nonsb_vwnd_m_mean = nanmean(nonsb_vwnd_m,2);
+nonsb_uwnd_a_mean = nanmean(nonsb_uwnd_a,2);
+nonsb_vwnd_a_mean = nanmean(nonsb_vwnd_a,2);
 
+%% difference plots
 
 intp_h = afternn_intp_data.h./1000;
 
 hfig = figure('color','w','position',[1 1 600 300])
 
-subplot(1,2,1); hold on; grid on; axis tight
-plot(sb_temp_diff_mean,intp_h,'r','linewidth',2);
-plot(nonsb_temp_diff_mean,intp_h,'r--','linewidth',2);
+subplot(1,3,1); hold on; grid on; axis tight
+plot(sb_temp_diff_mean,intp_h,'r-','linewidth',3);
+plot(nonsb_temp_diff_mean,intp_h,'r--','linewidth',1.5);
+plot([0,0],[0,4],'k-','LineWidth',0.5)
 ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
 xlabel(['\Delta Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
-set(gca,'xlim',[-4,4],'ylim',[0,4])
-
-subplot(1,2,2); hold on; grid on; axis tight
-plot(sb_dwpt_diff_mean,intp_h,'b','linewidth',2);
-plot(nonsb_dwpt_diff_mean,intp_h,'b--','linewidth',2);
-xlabel(['\Delta Dew Point Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
 set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4])
 
-export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['ybbn_temp_dwpt_diff_sb.png']);
+subplot(1,3,2); hold on; grid on; axis tight
+plot(sb_dwpt_diff_mean,intp_h,'b-','linewidth',3);
+plot(nonsb_dwpt_diff_mean,intp_h,'b--','linewidth',1.5);
+plot([0,0],[0,4],'k-','LineWidth',0.5)
+xlabel(['\Delta DP Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
+set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4])
 
-keyboard
+subplot(1,3,3); hold on; grid on
+set(gca,'FontSize',12,'ylim',[0,4],'xlim',[-1,1],'xtick',[-0.4,0.4],'xticklabels',{'SB','nonSB'})
+xlabel(['Wind Barbs (kts)'],'FontSize',14,'FontWeight','demi')
+
+barb_xscale = ones(length(nonsb_uwnd_m_mean),1).*0.4;
+barb_yscale = ones(length(nonsb_uwnd_m_mean),1).*0.4;
+barb_x     = zeros(length(nonsb_uwnd_m_mean),1);
+
+%plot(barb_x-0.3,intp_h,':')
+%plot(barb_x+0.3,intp_h,':')
+
+for i=1:5:length(nonsb_uwnd_m_mean)
+    windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_m_mean(i),sb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1,'Color','k');
+    windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_a_mean(i),sb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',2,'Color','k');
+    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_m_mean(i),nonsb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1,'Color','k');
+    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_a_mean(i),nonsb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',2,'Color','k');
+end
+
+export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/ybbn_temp_dwpt_diff_sb.png']);
+
+%% mean theta-e plots
+
+sts_st_list  = {'20141127','20141209','20131124','20140106'};
+weak_dt_list = {'20141106','20141211','20131113','20141218','20131123','20131229'};
+null_dt_list = {'20141217','20131122','20131211','20141031','20141111'};
+
+tmp_indx             = find(ismember(sb_dt,datenum(sts_st_list,'yyyymmdd')));
+sts_morning_therta_e = mean(sb_morning_theta_e(:,tmp_indx),2);
+sts_afternn_therta_e = mean(sb_afternn_theta_e(:,tmp_indx),2);
+sts_afternn_temp     = mean(sb_temp_diff(:,tmp_indx),2);
+sts_afternn_dwpt     = mean(sb_dwpt_diff(:,tmp_indx),2);
+
+tmp_indx              = find(ismember(sb_dt,datenum(weak_dt_list,'yyyymmdd')));
+weak_morning_therta_e = mean(sb_morning_theta_e(:,tmp_indx),2);
+weak_afternn_therta_e = mean(sb_afternn_theta_e(:,tmp_indx),2);
+
+tmp_indx              = find(ismember(sb_dt,datenum(null_dt_list,'yyyymmdd')));
+null_morning_therta_e = mean(sb_morning_theta_e(:,tmp_indx),2);
+null_afternn_therta_e = mean(sb_afternn_theta_e(:,tmp_indx),2);
+
+% figure; hold on
+% plot(sts_morning_therta_e,intp_h,'k-')
+% plot(weak_morning_therta_e,intp_h,'k--')
+% plot(null_morning_therta_e,intp_h,'k:')
+% legend({'sts','weak','null'})
+% title('Morning')
+% 
+% figure; hold on
+% plot(sts_afternn_therta_e,intp_h,'k-')
+% plot(weak_afternn_therta_e,intp_h,'k--')
+% plot(null_afternn_therta_e,intp_h,'k:')
+% legend({'sts','weak','null'})
+% title('Afternoon')
+
+hfig = figure('color','w','position',[1 1 300 300])
+hold on; grid on
+h1 = plot(sts_morning_therta_e,intp_h,'-','Color','r','LineWidth',1.5)
+h2 = plot(sts_afternn_therta_e,intp_h,'-','Color','r','LineWidth',3)
+h3 = plot(weak_morning_therta_e,intp_h,'--','Color',[206/255,147/255,8/255],'LineWidth',1.5)
+h4 = plot(weak_afternn_therta_e,intp_h,'--','Color',[206/255,147/255,8/255],'LineWidth',3)
+h5 = plot(null_morning_therta_e,intp_h,'-.','Color','k','LineWidth',1.5)
+h6 = plot(null_afternn_therta_e,intp_h,'-.','Color','k','LineWidth',3)
+legend([h1,h3,h5],{'Convective','Weaking','Null'},'fontsize',10)
+ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
+xlabel(['\theta','_e ( ','\circ','K)'],'FontSize',14,'FontWeight','demi')
+set(gca,'FontSize',12,'xlim',[320,355],'ylim',[0,4])
+
+export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/theta-e_sb.png']);
+
+
+hfig = figure('color','w','position',[1 1 200 300])
+hold on; grid on;
+h1 = plot(sts_afternn_temp,intp_h,'-','Color','r','LineWidth',1.5)
+h2 = plot(sts_afternn_dwpt,intp_h,'-.','Color','b','LineWidth',1.5)
+plot([0,0],[0,4],'k-','LineWidth',0.5)
+ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
+xlabel(['\Delta Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
+set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4],'xtick',[-4:2:4])
+
+export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/sts_temp_dwpt_diff.png']);
+
+%

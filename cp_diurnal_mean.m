@@ -137,14 +137,14 @@ sb_dwpt_diff_mean    = nanmean(sb_dwpt_diff,2);
 nonsb_temp_diff_mean = nanmean(nonsb_temp_diff,2);
 nonsb_dwpt_diff_mean = nanmean(nonsb_dwpt_diff,2);
 
-sb_uwnd_m_mean    = nanmean(sb_uwnd_m,2);
-sb_vwnd_m_mean    = nanmean(sb_vwnd_m,2);
-sb_uwnd_a_mean    = nanmean(sb_uwnd_a,2);
-sb_vwnd_a_mean    = nanmean(sb_vwnd_a,2);
-nonsb_uwnd_m_mean = nanmean(nonsb_uwnd_m,2);
-nonsb_vwnd_m_mean = nanmean(nonsb_vwnd_m,2);
-nonsb_uwnd_a_mean = nanmean(nonsb_uwnd_a,2);
-nonsb_vwnd_a_mean = nanmean(nonsb_vwnd_a,2);
+sb_uwnd_m_mean    = nanmean(sb_uwnd_m,2).*2; %double m/s to use 2.5m/s half barb
+sb_vwnd_m_mean    = nanmean(sb_vwnd_m,2).*2; %double m/s to use 2.5m/s half barb
+sb_uwnd_a_mean    = nanmean(sb_uwnd_a,2).*2; %double m/s to use 2.5m/s half barb
+sb_vwnd_a_mean    = nanmean(sb_vwnd_a,2).*2; %double m/s to use 2.5m/s half barb
+nonsb_uwnd_m_mean = nanmean(nonsb_uwnd_m,2).*2; %double m/s to use 2.5m/s half barb
+nonsb_vwnd_m_mean = nanmean(nonsb_vwnd_m,2).*2; %double m/s to use 2.5m/s half barb
+nonsb_uwnd_a_mean = nanmean(nonsb_uwnd_a,2).*2; %double m/s to use 2.5m/s half barb
+nonsb_vwnd_a_mean = nanmean(nonsb_vwnd_a,2).*2; %double m/s to use 2.5m/s half barb
 
 %% difference plots
 
@@ -169,7 +169,7 @@ set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4])
 
 subplot(1,3,3); hold on; grid on
 set(gca,'FontSize',12,'ylim',[0,4],'xlim',[-1,1],'xtick',[-0.4,0.4],'xticklabels',{'SB','nonSB'})
-xlabel(['Wind Barbs (kts)'],'FontSize',14,'FontWeight','demi')
+xlabel(['Wind Barbs (ms )'],'FontSize',14,'FontWeight','demi')
 
 barb_xscale = ones(length(nonsb_uwnd_m_mean),1).*0.4;
 barb_yscale = ones(length(nonsb_uwnd_m_mean),1).*0.4;
@@ -179,10 +179,10 @@ barb_x     = zeros(length(nonsb_uwnd_m_mean),1);
 %plot(barb_x+0.3,intp_h,':')
 
 for i=1:5:length(nonsb_uwnd_m_mean)
-    windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_m_mean(i),sb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1,'Color','k');
-    windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_a_mean(i),sb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',2,'Color','k');
-    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_m_mean(i),nonsb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1,'Color','k');
-    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_a_mean(i),nonsb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',2,'Color','k');
+    windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_m_mean(i),sb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',0.5,'Color','k');
+    windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_a_mean(i),sb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1.5,'Color','k');
+    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_m_mean(i),nonsb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',0.5,'Color','k');
+    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_a_mean(i),nonsb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1.5,'Color','k');
 end
 
 export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/ybbn_temp_dwpt_diff_sb.png']);

@@ -153,23 +153,23 @@ intp_h = afternn_intp_data.h./1000;
 hfig = figure('color','w','position',[1 1 600 300])
 
 subplot(1,3,1); hold on; grid on; axis tight
-plot(sb_temp_diff_mean,intp_h,'r-','linewidth',3);
-plot(nonsb_temp_diff_mean,intp_h,'r--','linewidth',1.5);
+plot(sb_temp_diff_mean,intp_h,'k-','linewidth',3);
+plot(nonsb_temp_diff_mean,intp_h,'k--','linewidth',1.5);
 plot([0,0],[0,4],'k-','LineWidth',0.5)
 ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
-xlabel(['\Delta Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
+xlabel(['\Delta Temp. (°C)'],'FontSize',14,'FontWeight','demi')
 set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4])
 
 subplot(1,3,2); hold on; grid on; axis tight
-plot(sb_dwpt_diff_mean,intp_h,'b-','linewidth',3);
-plot(nonsb_dwpt_diff_mean,intp_h,'b--','linewidth',1.5);
+plot(sb_dwpt_diff_mean,intp_h,'-','Color',[0.5 0.5 0.5],'linewidth',3);
+plot(nonsb_dwpt_diff_mean,intp_h,'--','Color',[0.5 0.5 0.5],'linewidth',1.5);
 plot([0,0],[0,4],'k-','LineWidth',0.5)
-xlabel(['\Delta DP Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
+xlabel(['\Delta DP Temp. (°C)'],'FontSize',14,'FontWeight','demi')
 set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4])
 
 subplot(1,3,3); hold on; grid on
 set(gca,'FontSize',12,'ylim',[0,4],'xlim',[-1,1],'xtick',[-0.4,0.4],'xticklabels',{'SB','nonSB'})
-xlabel(['Wind Barbs (ms )'],'FontSize',14,'FontWeight','demi')
+xlabel(['Wind Barbs (ms^-^1)'],'FontSize',14,'FontWeight','demi')
 
 barb_xscale = ones(length(nonsb_uwnd_m_mean),1).*0.4;
 barb_yscale = ones(length(nonsb_uwnd_m_mean),1).*0.4;
@@ -190,6 +190,7 @@ export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/ybbn_temp_dwpt_di
 %% mean theta-e plots
 
 sts_st_list  = {'20141127','20141209','20131124','20140106'};
+%sts_st_list  = {'20131124'};
 weak_dt_list = {'20141106','20141211','20131113','20141218','20131123','20131229'};
 null_dt_list = {'20141217','20131122','20131211','20141031','20141111'};
 
@@ -223,27 +224,28 @@ null_afternn_therta_e = mean(sb_afternn_theta_e(:,tmp_indx),2);
 
 hfig = figure('color','w','position',[1 1 300 300])
 hold on; grid on
-h1 = plot(sts_morning_therta_e,intp_h,'-','Color','r','LineWidth',1.5)
-h2 = plot(sts_afternn_therta_e,intp_h,'-','Color','r','LineWidth',3)
-h3 = plot(weak_morning_therta_e,intp_h,'--','Color',[206/255,147/255,8/255],'LineWidth',1.5)
-h4 = plot(weak_afternn_therta_e,intp_h,'--','Color',[206/255,147/255,8/255],'LineWidth',3)
-h5 = plot(null_morning_therta_e,intp_h,'-.','Color','k','LineWidth',1.5)
-h6 = plot(null_afternn_therta_e,intp_h,'-.','Color','k','LineWidth',3)
+h1 = plot(sts_morning_therta_e,intp_h,'-','Color',[0 0 0],'LineWidth',1.5)
+h2 = plot(sts_afternn_therta_e,intp_h,'-','Color',[0 0 0],'LineWidth',3)
+h3 = plot(weak_morning_therta_e,intp_h,'--','Color',[0.5 0.5 0.5],'LineWidth',1.5)
+h4 = plot(weak_afternn_therta_e,intp_h,'--','Color',[0.5 0.5 0.5],'LineWidth',3)
+h5 = plot(null_morning_therta_e,intp_h,'-.','Color',[0.8 0.8 0.8],'LineWidth',1.5)
+h6 = plot(null_afternn_therta_e,intp_h,'-.','Color',[0.8 0.8 0.8],'LineWidth',3)
 legend([h1,h3,h5],{'Convective','Weaking','Null'},'fontsize',10)
 ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
-xlabel(['\theta','_e ( ','\circ','K)'],'FontSize',14,'FontWeight','demi')
+xlabel(['\theta','_e (°K)'],'FontSize',14,'FontWeight','demi')
 set(gca,'FontSize',12,'xlim',[320,355],'ylim',[0,4])
 
 export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/theta-e_sb.png']);
 
+%% theta-e diff plots
 
 hfig = figure('color','w','position',[1 1 200 300])
 hold on; grid on;
-h1 = plot(sts_afternn_temp,intp_h,'-','Color','r','LineWidth',1.5)
-h2 = plot(sts_afternn_dwpt,intp_h,'-.','Color','b','LineWidth',1.5)
+h1 = plot(sts_afternn_temp,intp_h,'-','Color','k','LineWidth',1.5)
+h2 = plot(sts_afternn_dwpt,intp_h,'-.','Color',[0.5 0.5 0.5],'LineWidth',1.5)
 plot([0,0],[0,4],'k-','LineWidth',0.5)
 ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
-xlabel(['\Delta Temp. ( ','\circ','C)'],'FontSize',14,'FontWeight','demi')
+xlabel(['\Delta Temp. (°C)'],'FontSize',14,'FontWeight','demi')
 set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4],'xtick',[-4:2:4])
 
 export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/sts_temp_dwpt_diff.png']);

@@ -7,8 +7,8 @@ function cp_diurnal_mean
 
 %% init
 %add lib paths
-addpath('../../shared_lib')
-addpath('../../shared_lib/export_fig');
+addpath('/home/meso/dev/shared_lib')
+addpath('/home/meso/dev/shared_lib/export_fig');
 addpath('lib')
 
 %read in config
@@ -18,14 +18,9 @@ load('etc/config.mat');
 %create interp_h
 close all
 
-
-
 %% load/subset data
-
 %load processed mat
 load(cp_data_ffn)
-
-
 
 %build snd dt list
 snd_dt_list = nan(length(fieldnames(snd_dataset)),1);
@@ -34,9 +29,9 @@ for i=1:length(snd_dt_list)
 end
 
 %load sb date list
-load('../../shared_datasets/arch_sb_days.mat');
+load('/home/meso/dev/shared_datasets/arch_sb_days.mat');
 sb_datelist = target_days;
-load('../../shared_datasets/arch_nonsb_days.mat');
+load('/home/meso/dev/shared_datasets/arch_nonsb_days.mat');
 nonsb_datelist = target_days;
 
 

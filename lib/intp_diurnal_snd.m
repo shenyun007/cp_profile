@@ -4,8 +4,8 @@ function intp_data = intp_diurnal_snd(snd_dataset,snd_idx)
 
 %% init
 %add lib paths
-addpath('../../shared_lib')
-addpath('../../shared_lib/export_fig');
+addpath('/home/meso/dev/shared_lib')
+addpath('/home/meso/dev/shared_lib/export_fig');
 addpath('lib')
 
 %read in config

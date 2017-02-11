@@ -1,4 +1,4 @@
-function cp_diurnal_mean
+function cp_sounding_diurnal_mean
 %Joshua Soderholm, Feb 2016
 %Climate Research Group, University of Queensland
 
@@ -29,9 +29,9 @@ for i=1:length(snd_dt_list)
 end
 
 %load sb date list
-load('/home/meso/dev/shared_datasets/arch_sb_days.mat');
+load('/home/meso/dev/shared_dataset/arch_sb_days.mat');
 sb_datelist = target_days;
-load('/home/meso/dev/shared_datasets/arch_nonsb_days.mat');
+load('/home/meso/dev/shared_dataset/arch_nonsb_days.mat');
 nonsb_datelist = target_days;
 
 
@@ -149,7 +149,7 @@ hfig = figure('color','w','position',[1 1 600 300])
 
 subplot(1,3,1); hold on; grid on; axis tight
 plot(sb_temp_diff_mean,intp_h,'k-','linewidth',3);
-plot(nonsb_temp_diff_mean,intp_h,'k--','linewidth',1.5);
+%plot(nonsb_temp_diff_mean,intp_h,'k--','linewidth',1.5);
 plot([0,0],[0,4],'k-','LineWidth',0.5)
 ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
 xlabel(['\Delta Temp. (°C)'],'FontSize',14,'FontWeight','demi')
@@ -157,7 +157,7 @@ set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4])
 
 subplot(1,3,2); hold on; grid on; axis tight
 plot(sb_dwpt_diff_mean,intp_h,'-','Color',[0.5 0.5 0.5],'linewidth',3);
-plot(nonsb_dwpt_diff_mean,intp_h,'--','Color',[0.5 0.5 0.5],'linewidth',1.5);
+%plot(nonsb_dwpt_diff_mean,intp_h,'--','Color',[0.5 0.5 0.5],'linewidth',1.5);
 plot([0,0],[0,4],'k-','LineWidth',0.5)
 xlabel(['\Delta DP Temp. (°C)'],'FontSize',14,'FontWeight','demi')
 set(gca,'FontSize',12,'xlim',[-4,4],'ylim',[0,4])
@@ -176,10 +176,11 @@ barb_x     = zeros(length(nonsb_uwnd_m_mean),1);
 for i=1:5:length(nonsb_uwnd_m_mean)
     windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_m_mean(i),sb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',0.5,'Color','k');
     windbarb(barb_x(i)-0.4,intp_h(i),sb_uwnd_a_mean(i),sb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1.5,'Color','k');
-    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_m_mean(i),nonsb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',0.5,'Color','k');
-    windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_a_mean(i),nonsb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1.5,'Color','k');
+    %windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_m_mean(i),nonsb_vwnd_m_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',0.5,'Color','k');
+    %windbarb(barb_x(i)+0.4,intp_h(i),nonsb_uwnd_a_mean(i),nonsb_vwnd_a_mean(i),barb_xscale(i),barb_yscale(i),'LineWidth',1.5,'Color','k');
 end
-
+mkdir('tmp')
+mkdir('tmp/img')
 export_fig(gcf,'-dpng','-painters','-r300','-nocrop',['tmp/img/ybbn_temp_dwpt_diff_sb.png']);
 
 %% mean theta-e plots
@@ -225,7 +226,7 @@ h3 = plot(weak_morning_therta_e,intp_h,'--','Color',[0.5 0.5 0.5],'LineWidth',1.
 h4 = plot(weak_afternn_therta_e,intp_h,'--','Color',[0.5 0.5 0.5],'LineWidth',3)
 h5 = plot(null_morning_therta_e,intp_h,'-.','Color',[0.8 0.8 0.8],'LineWidth',1.5)
 h6 = plot(null_afternn_therta_e,intp_h,'-.','Color',[0.8 0.8 0.8],'LineWidth',3)
-legend([h1,h3,h5],{'Convective','Weaking','Null'},'fontsize',10)
+legend([h1,h3,h5],{'Convective','Weakening','Null'},'fontsize',10)
 ylabel('Height AMSL (km)','FontSize',14,'FontWeight','demi')
 xlabel(['\theta','_e (°K)'],'FontSize',14,'FontWeight','demi')
 set(gca,'FontSize',12,'xlim',[320,355],'ylim',[0,4])
